@@ -12,7 +12,7 @@
 ## Технологии
 
 - Next.js 14 (App Router), TypeScript, Tailwind CSS
-- Prisma + SQLite
+- Prisma + PostgreSQL (production-ready)
 - NextAuth.js за најава
 
 ## Инсталација
@@ -20,7 +20,8 @@
 ```bash
 npm install
 cp .env.example .env
-npx prisma db push
+# внеси DATABASE_URL за PostgreSQL во .env
+npm run db:push
 npm run db:seed
 npm run dev
 ```
@@ -31,7 +32,7 @@ npm run dev
 
 | Улога   | Е-пошта              | Лозинка   |
 |--------|----------------------|-----------|
-| Админ  | admin@elearning.mk   | admin123  |
+| Админ  | admin@elearning.mk   | SEED_ADMIN_PASSWORD (или admin123 ако не е поставено) |
 | Наставник | teacher@elearning.mk | teacher123 |
 | Студент | student@elearning.mk | student123 |
 
@@ -45,3 +46,28 @@ npm run dev
 ## Македонски текст
 
 Сите кориснички интерфејси (најава, регистрација, контролна табла, предмети, домашни, поставки, админ) се на македонски. При регистрација студентите избираат **година** од 1 до 4.
+
+
+## Vercel Deployment
+
+1. Поврзи го GitHub репото со Vercel.
+2. Во Vercel -> Settings -> Environment Variables внеси:
+   - `DATABASE_URL` (PostgreSQL connection string)
+   - `NEXTAUTH_SECRET` (долг случаен string)
+   - `NEXTAUTH_URL` (пример: `https://your-app-name.vercel.app`)
+   - `SEED_ADMIN_EMAIL` (опционално, default `admin@elearning.mk`)
+   - `SEED_ADMIN_PASSWORD` (препорачано, најмалку 8 карактери)
+3. Build Command постави на: `npm run vercel-build`
+4. Deploy.
+5. По прв deploy, seed-ирај ја продукциската база од локално (со production env vars):
+
+```bash
+DATABASE_URL="<your-production-db-url>" \
+NEXTAUTH_SECRET="<your-secret>" \
+NEXTAUTH_URL="https://your-app-name.vercel.app" \
+SEED_ADMIN_EMAIL="admin@elearning.mk" \
+SEED_ADMIN_PASSWORD="StrongAdminPassword123!" \
+npm run db:seed
+```
+
+> Забелешка: за uploads во production користи cloud storage (Vercel Blob / S3 / Cloudinary), бидејќи локален filesystem на Vercel не е перзистентен.

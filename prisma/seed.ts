@@ -4,15 +4,21 @@ import { hash } from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const adminPassword = await hash("admin123", 12);
+  const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@elearning.mk";
+  const adminPlainPassword = process.env.SEED_ADMIN_PASSWORD ?? "admin123";
+  if (adminPlainPassword.length < 8) {
+    throw new Error("SEED_ADMIN_PASSWORD мора да има најмалку 8 карактери.");
+  }
+
+  const adminPassword = await hash(adminPlainPassword, 12);
   const teacherPassword = await hash("teacher123", 12);
   const studentPassword = await hash("student123", 12);
 
   const admin = await prisma.user.upsert({
-    where: { email: "admin@elearning.mk" },
+    where: { email: adminEmail },
     update: {},
     create: {
-      email: "admin@elearning.mk",
+      email: adminEmail,
       passwordHash: adminPassword,
       name: "Администратор",
       role: "admin",
@@ -150,6 +156,7 @@ async function main() {
     admin: admin.email,
     teacher: teacher.email,
     student: student.email,
+    adminPassword: process.env.SEED_ADMIN_PASSWORD ? "(from env)" : "admin123",
   });
 }
 
